@@ -1,7 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.OleDb;
 using System.Linq.Expressions;
 using System.Reflection;
 using LinqToExcel.Domain;
@@ -13,7 +11,6 @@ namespace LinqToExcel
     public class ExcelQueryFactory : IExcelQueryFactory
     {
         private readonly Dictionary<string, string> _columnMappings = new Dictionary<string, string>();
-        private readonly Dictionary<string, Func<string, object>> _transformations = new Dictionary<string, Func<string, object>>();
         private readonly ILogManagerFactory _logManagerFactory;
         private readonly ILogProvider _log;
         private ExcelQueryArgs _queryArgs;
@@ -53,6 +50,8 @@ namespace LinqToExcel
         /// </summary>
         public bool UsePersistentConnection { get; set; }
 
+        public Dictionary<string, Func<string, object>> Transformations { get; set; }
+
         public ExcelQueryFactory()
           : this(null, null) { }
 
@@ -76,7 +75,7 @@ namespace LinqToExcel
         {
             FileName = fileName;
             DatabaseEngine = ExcelUtilities.DefaultDatabaseEngine();
-
+            Transformations = new Dictionary<string, Func<string, object>>();
             if (logManagerFactory != null) {
                _logManagerFactory = logManagerFactory;
                _log = _logManagerFactory.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -145,7 +144,7 @@ namespace LinqToExcel
         /// </example>
         public void AddTransformation<TSheetData>(Expression<Func<TSheetData, object>> property, Func<string, object> transformation)
         {
-            _transformations.Add(GetPropertyName(property), transformation);
+            Transformations.Add(GetPropertyName(property), transformation);
         }
 
         /// <summary>
@@ -215,7 +214,7 @@ namespace LinqToExcel
                 DatabaseEngine = DatabaseEngine,
                 StrictMapping = StrictMapping,
                 ColumnMappings = _columnMappings,
-                Transformations = _transformations,
+                Transformations = Transformations,
 				UsePersistentConnection = UsePersistentConnection,
                 TrimSpaces = TrimSpaces,
                 ReadOnly = ReadOnly
