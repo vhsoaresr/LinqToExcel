@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Collections;
@@ -38,7 +38,7 @@ namespace LinqToExcel.Extensions
         public static object Cast(this object @object, Type castType)
         {
             //return null for DBNull values
-            if (@object == null || @object.GetType() == typeof(DBNull))
+            if (string.IsNullOrEmpty(@object?.ToString()) || @object?.ToString() == "00/00/0000" || @object.GetType() == typeof(DBNull))
                 return null;
 
             //checking for nullable types
@@ -47,6 +47,7 @@ namespace LinqToExcel.Extensions
             {
                 castType = Nullable.GetUnderlyingType(castType);
             }
+
             return Convert.ChangeType(@object, castType);
         }
 
