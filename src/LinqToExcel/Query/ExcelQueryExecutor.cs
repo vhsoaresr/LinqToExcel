@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Remotion.Data.Linq;
@@ -27,13 +27,14 @@ namespace LinqToExcel.Query
             ValidateArgs(args);
             _args = args;
 
-           if (logManagerFactory != null) {
-               _logManagerFactory = logManagerFactory;
-               _log = _logManagerFactory.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-           }
+            if (logManagerFactory != null)
+            {
+                _logManagerFactory = logManagerFactory;
+                _log = _logManagerFactory.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            }
 
-         if (_log != null && _log.IsDebugEnabled == true)
-				_log.DebugFormat("Connection String: {0}", ExcelUtilities.GetConnection(args).ConnectionString);
+            if (_log != null && _log.IsDebugEnabled == true)
+                _log.DebugFormat("Connection String: {0}", ExcelUtilities.GetConnection(args).ConnectionString);
 
             GetWorksheetName();
         }
@@ -173,14 +174,14 @@ namespace LinqToExcel.Query
             IEnumerable<object> results;
             OleDbDataReader data = null;
 
-	        var conn = ExcelUtilities.GetConnection(_args);
+            var conn = ExcelUtilities.GetConnection(_args);
             var command = conn.CreateCommand();
             try
             {
                 if (conn.State == ConnectionState.Closed)
                     conn.Open();
 
-	            command.CommandText = sql.ToString();
+                command.CommandText = sql.ToString();
                 command.Parameters.AddRange(sql.Parameters.ToArray());
                 try { data = command.ExecuteReader(); }
                 catch (OleDbException e)
@@ -309,8 +310,11 @@ namespace LinqToExcel.Query
                         prop.Name;
                     if (columns.Contains(columnName))
                     {
-                        var value = GetColumnValue(data, columnName, prop.Name).Cast(prop.PropertyType);
+                        var value = GetColumnValue(data, columnName, prop.Name);
+
+                        value = value.Cast(prop.PropertyType);
                         value = TrimStringValue(value);
+
                         result.SetProperty(prop.Name, value);
                     }
                 }
@@ -378,9 +382,10 @@ namespace LinqToExcel.Query
         private object GetColumnValue(IDataRecord data, string columnName, string propertyName)
         {
             //Perform the property transformation if there is one
-            return (_args.Transformations.ContainsKey(propertyName)) ?
+            var a = (_args.Transformations.ContainsKey(propertyName)) ?
                 _args.Transformations[propertyName](data[columnName].ToString()) :
                 data[columnName];
+            return a;
         }
 
         private IEnumerable<object> GetScalarResults(IDataReader data)
@@ -406,7 +411,8 @@ namespace LinqToExcel.Query
                     logMessage.Append(paramMessage);
                 }
 
-                if (_logManagerFactory != null) {
+                if (_logManagerFactory != null)
+                {
                     var sqlLog = _logManagerFactory.GetLogger("LinqToExcel.SQL");
                     sqlLog.Debug(logMessage.ToString());
                 }
